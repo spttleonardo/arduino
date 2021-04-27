@@ -10,6 +10,7 @@ int contador = 0;
 
 
 int positionAst = 15;
+int positionNAVE = 0;
 bool print = false;
 
 //nave
@@ -56,18 +57,7 @@ byte ast1[8]{
   B00100,
 };
 
-byte ast2[8]{
-  B00100,
-  B01010,
-  B10001,
-  B10001,
-  B10001,
-  B10001,
-  B01010,
-  B00100,
-};
 
-byte *asteroides[2]{ast1,ast2}; 
 
 
 
@@ -84,30 +74,36 @@ void setup()
 
 }
 
-void nave1(){
+int nave1(){
 
 
   distancia= nivel();
   
     if(distancia > 120){
-   lcd.createChar(4, branco);
-   lcd.setCursor(0,1);
-     lcd.write(byte(4));
- 	lcd.setCursor(0,0);
+    
+    positionNAVE = 0;
+   
+    lcd.createChar(4, branco);
+   	lcd.setCursor(0,positionNAVE+1);
+    lcd.write(byte(4));
+ 	lcd.setCursor(0,positionNAVE);
     lcd.write(byte(0));
 
  }
     
 if(distancia < 120){
        
+  positionNAVE = 1;
+  
   lcd.createChar(4, branco);
-   lcd.setCursor(0,0);
+   lcd.setCursor(0,positionNAVE-1);
     lcd.write(byte(4));
  
-   lcd.setCursor(0,1);
+   lcd.setCursor(0,positionNAVE);
    lcd.write(byte(0));
 
 }
+  return positionNAVE;
 }
 
 
@@ -137,6 +133,8 @@ void loop() {
   
 	int linha;
     int asteroide;
+  
+  
 
   	random (asteroide, linha);
  	positionAst = 16;
@@ -165,7 +163,7 @@ while(positionAst >= -1){
     lcd.write(2);
     
     
-   delay(100);
+   delay(10);
     
     lcd.createChar(2, ast1);
     lcd.setCursor(positionAst, n); //(0)
@@ -175,8 +173,14 @@ while(positionAst >= -1){
     
     positionAst--;
     
+  	 if( nave1() == n && positionAst == 0 ){
+  
+  	Serial.println("GAME OVER");
+  
+  }
     
    }
   
+  
+ 
 }
-
