@@ -1,0 +1,182 @@
+#include <LiquidCrystal.h>
+
+LiquidCrystal lcd (8,9,4,5,6,7);
+
+int pin_trig = 3, pin_echo=2;
+
+float distancia;
+int tempo;
+int contador = 0;
+
+
+int positionAst = 15;
+bool print = false;
+
+//nave
+
+byte nave[8]{
+  
+  B10000,
+  B11000,
+  B10100,
+  B10011,
+  B11110,
+  B10100,
+  B11000,
+  B10000,
+
+};
+
+//byte em branco
+byte branco[8]{
+  
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+
+};
+
+
+
+//asteroides
+
+byte ast1[8]{
+  B00100,
+  B01010,
+  B10001,
+  B10001,
+  B10001,
+  B10001,
+  B01010,
+  B00100,
+};
+
+byte ast2[8]{
+  B00100,
+  B01010,
+  B10001,
+  B10001,
+  B10001,
+  B10001,
+  B01010,
+  B00100,
+};
+
+byte *asteroides[2]{ast1,ast2}; 
+
+
+
+void setup()
+{
+  pinMode(pin_trig, OUTPUT);
+  pinMode(pin_echo,INPUT);
+  
+  Serial.begin(9600);
+  
+  
+  lcd.createChar(0, nave);
+  lcd.begin(16, 2); //setup da nave no LCD
+
+}
+
+void nave1(){
+
+
+  distancia= nivel();
+  
+    if(distancia > 120){
+   lcd.createChar(4, branco);
+   lcd.setCursor(0,1);
+     lcd.write(byte(4));
+ 	lcd.setCursor(0,0);
+    lcd.write(byte(0));
+
+ }
+    
+if(distancia < 120){
+       
+  lcd.createChar(4, branco);
+   lcd.setCursor(0,0);
+    lcd.write(byte(4));
+ 
+   lcd.setCursor(0,1);
+   lcd.write(byte(0));
+
+}
+}
+
+
+
+float nivel() {
+  
+  int tempo;
+  float distancia;
+  
+  digitalWrite(pin_trig, LOW);
+  delayMicroseconds(10);
+  
+  digitalWrite(pin_trig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(pin_trig, LOW);
+ 
+  tempo = pulseIn(pin_echo,HIGH);
+  
+  distancia= tempo*  0.017;
+  
+
+  
+  return distancia;
+}
+  
+void loop() {
+  
+	int linha;
+    int asteroide;
+
+  	random (asteroide, linha);
+ 	positionAst = 16;
+}
+
+
+void random (int asteroide, int linha){
+  
+ int n = random(2); //n para asteroide
+ Serial.println(n);
+ delay(100);
+
+while(positionAst >= -1){
+  
+	
+    
+    print = true;
+ 	nave1();
+    
+    lcd.createChar(4, branco);
+   	lcd.setCursor(positionAst+1,n);
+    lcd.write(byte(4));
+    
+	lcd.createChar(2, ast1);
+    lcd.setCursor(positionAst,n); //(0)
+    lcd.write(2);
+    
+    
+   delay(100);
+    
+    lcd.createChar(2, ast1);
+    lcd.setCursor(positionAst, n); //(0)
+    lcd.write(2);
+    
+    
+    
+    positionAst--;
+    
+    
+   }
+  
+}
+
