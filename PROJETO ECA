@@ -174,12 +174,23 @@ while(positionAst >= -1){
     positionAst--;
     
    	
- 	 if( nave1() == n && positionAst == 0 ){
+ 	if( nave1() == n && positionAst == 0 ){
   
-  	Serial.println("GAME OVER");
-    	tone( buzzer, 261);
-    	delay(100);
-    	noTone(buzzer);
+  	
+   		 lcd.setCursor(6,0);
+   		 lcd.print("GAME");
+    		 lcd.setCursor(6,1);
+    		 lcd.print("OVER");
+   
+    
+   		 tone( buzzer, 261);
+    		delay(100);
+    		noTone(buzzer);
+    
+    		 lcd.clear();
+     		 break;
+    
+      	}
        }
       }
     }
