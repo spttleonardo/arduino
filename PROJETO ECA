@@ -3,16 +3,16 @@
 LiquidCrystal lcd (8,9,4,5,6,7);
 
 int pin_trig = 3, pin_echo=2;
+int buzzer = 10;
+int gatilho = A0;
 
 float distancia;
 int tempo;
-int contador = 0;
-
-
 int positionAst = 15;
 int positionNAVE = 0;
-bool print = false;
-
+int positionTiro =15;
+int linha;
+int asteroide;
 //nave
 
 byte nave[8]{
@@ -20,7 +20,7 @@ byte nave[8]{
   B10000,
   B11000,
   B10100,
-  B10011,
+  B11111,
   B11110,
   B10100,
   B11000,
@@ -43,7 +43,6 @@ byte branco[8]{
 };
 
 
-
 //asteroides
 
 byte ast1[8]{
@@ -57,18 +56,28 @@ byte ast1[8]{
   B00100,
 };
 
-
-
-
+//tiro
+byte tiro[8]{
+  B00000,
+  B00000,
+  B01110,
+  B11111,
+  B01110,
+  B00000,
+  B00000,
+  B00000,
+};
 
 void setup()
 {
   pinMode(pin_trig, OUTPUT);
   pinMode(pin_echo,INPUT);
+  pinMode(buzzer, OUTPUT);
+  
   
   Serial.begin(9600);
   
-  
+  lcd.createChar(5,tiro);
   lcd.createChar(0, nave);
   lcd.begin(16, 2); //setup da nave no LCD
 
@@ -88,23 +97,27 @@ int nave1(){
     lcd.write(byte(4));
  	lcd.setCursor(0,positionNAVE);
     lcd.write(byte(0));
-
- }
+    
+   }
     
 if(distancia < 120){
        
   positionNAVE = 1;
   
   lcd.createChar(4, branco);
-   lcd.setCursor(0,positionNAVE-1);
-    lcd.write(byte(4));
- 
-   lcd.setCursor(0,positionNAVE);
-   lcd.write(byte(0));
-
+  lcd.setCursor(0,positionNAVE-1);
+  lcd.write(byte(4));
+  lcd.setCursor(0,positionNAVE);
+  lcd.write(byte(0));
+  
+  
 }
+ 
+  
+  
   return positionNAVE;
 }
+
 
 
 
@@ -131,67 +144,88 @@ float nivel() {
   
 void loop() {
   
-	int linha;
-    int asteroide;
-  
-  
-
-  	random (asteroide, linha);
+    random (asteroide, linha);
  	positionAst = 16;
 }
+
+
 
 
 void random (int asteroide, int linha){
   
  int n = random(2); //n para asteroide
+  int x=0;
  Serial.println(n);
- delay(100);
+ delay(10);
+ 
 
 while(positionAst >= -1){
+int grau1 = grau(); 
+nave1();
+
+  if(grau1==180){
+  x=1;
+  }
+  if(positionTiro==1){
+  positionTiro=15;
+  x=0;
+  }
+  if(x==1){ 
+    lcd.setCursor(16-positionTiro,positionNAVE);
+    lcd.write(byte(5));
+    delay(100);
+    lcd.createChar(4, branco);
+   	lcd.setCursor(16-positionTiro,positionNAVE);
+    lcd.write(byte(4));  
+ 
+  }
+
   
-	
-    
-    print = true;
- 	nave1();
-    
     lcd.createChar(4, branco);
    	lcd.setCursor(positionAst+1,n);
     lcd.write(byte(4));
     
-	lcd.createChar(2, ast1);
+
+    
+   	lcd.createChar(2, ast1);
     lcd.setCursor(positionAst,n); //(0)
     lcd.write(2);
-    
-    
-   delay(10);
     
     lcd.createChar(2, ast1);
     lcd.setCursor(positionAst, n); //(0)
     lcd.write(2);
     
+    delayMicroseconds(2);
     
     
     positionAst--;
-    
+  	positionTiro--;
+
+ 
    	
- 	if( nave1() == n && positionAst == 0 ){
+  if( nave1() == n && positionAst == 0 ){
   
   	
-   		 lcd.setCursor(6,0);
-   		 lcd.print("GAME");
-    		 lcd.setCursor(6,1);
-    		 lcd.print("OVER");
+    lcd.setCursor(6,0);
+    lcd.print("GAME");
+    lcd.setCursor(6,1);
+    lcd.print("OVER");
    
     
-   		 tone( buzzer, 261);
-    		delay(100);
-    		noTone(buzzer);
+    tone( buzzer, 261);
+    delay(100);
+    noTone(buzzer);
     
-    		 lcd.clear();
-     		 break;
+     lcd.clear();
+      break;
     
-      	}
-       }
       }
-    }
-  }
+   } 
+}
+
+
+int grau (){ 
+  	int valor = map(analogRead(A0), 33,6, 0, 180);
+  	Serial.println(valor);
+	return valor;
+}
