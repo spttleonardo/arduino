@@ -11,10 +11,14 @@ int tempo;
 int positionAst = 15;
 int positionNAVE = 0;
 int positionTiro =15;
+int positionTiro1 =15;
 int linha;
 int asteroide;
+int x=0,y=0;
+
 //nave
 
+  
 byte nave[8]{
   
   B10000,
@@ -114,10 +118,8 @@ if(distancia < 120){
 }
  
   
-  
   return positionNAVE;
 }
-
 
 
 
@@ -150,44 +152,64 @@ void loop() {
 
 
 
-
 void random (int asteroide, int linha){
   
  int n = random(2); //n para asteroide
-  int x=0;
+
  Serial.println(n);
  delay(10);
  
 
 while(positionAst >= -1){
 int grau1 = grau(); 
+ 
+ 
+  
 nave1();
-
-  if(grau1==180){
-  x=1;
+  
+if(grau1==180 && positionNAVE == 0){//LED VERDE HIGH
+    x=1;      						//FAZER GATILHO VOLTAR
   }
-  if(positionTiro==1){
+  if(grau1==180 && positionNAVE == 1){//LED VERDE HIGH
+  y=1;
+  }
+if(positionTiro<=1){//positionTiro==0
   positionTiro=15;
   x=0;
-  }
-  if(x==1){ 
-    lcd.setCursor(16-positionTiro,positionNAVE);
-    lcd.write(byte(5));
-    delay(100);
-    lcd.createChar(4, branco);
-   	lcd.setCursor(16-positionTiro,positionNAVE);
-    lcd.write(byte(4));  
- 
-  }
+  y=0;
+  delay(400);
 
+ }
   
-    lcd.createChar(4, branco);
-   	lcd.setCursor(positionAst+1,n);
+
+
+if( x==1 && positionNAVE == 0 ){
+  		tiro1();
+  
+  positionTiro--;
+  }
+if( x==1 && positionNAVE == 1){
+    	tiro1();
+  positionTiro--;
+
+}
+  if( y==1 && positionNAVE == 1 ){
+  		tiro2();
+  positionTiro--;
+  
+  }
+if( y==1 && positionNAVE == 0){
+    	tiro2();
+  positionTiro--;
+
+}
+
+
+   lcd.createChar(4, branco);
+   lcd.setCursor(positionAst+1,n);
     lcd.write(byte(4));
     
-
-    
-   	lcd.createChar(2, ast1);
+    lcd.createChar(2, ast1);
     lcd.setCursor(positionAst,n); //(0)
     lcd.write(2);
     
@@ -195,12 +217,12 @@ nave1();
     lcd.setCursor(positionAst, n); //(0)
     lcd.write(2);
     
-    delayMicroseconds(2);
+    delay(10);
     
     
     positionAst--;
-  	positionTiro--;
-
+  	//positionTiro--;
+  
  
    	
   if( nave1() == n && positionAst == 0 ){
@@ -220,12 +242,43 @@ nave1();
       break;
     
       }
+
    } 
 }
 
-
 int grau (){ 
-  	int valor = map(analogRead(A0), 33,6, 0, 180);
+  	int valor = map(analogRead(A0), 33, 6, 0, 180);
   	Serial.println(valor);
 	return valor;
+}
+
+
+
+int tiro1(){
+
+   
+    lcd.setCursor(16-positionTiro,0);
+    lcd.write(byte(5));
+    delay(100);
+  
+    lcd.createChar(4, branco);
+   	lcd.setCursor(16-positionTiro,0);
+    lcd.write(byte(4));
+  
+
+ return positionTiro;
+}
+int tiro2(){
+
+   
+    lcd.setCursor(16-positionTiro,1);
+    lcd.write(byte(5));
+    delay(100);
+  
+    lcd.createChar(4, branco);
+   	lcd.setCursor(16-positionTiro,1);
+    lcd.write(byte(4));
+  
+
+ return positionTiro;
 }
