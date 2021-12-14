@@ -1,24 +1,31 @@
 #include <LiquidCrystal.h>
 
-LiquidCrystal lcd (8,9,4,5,6,7);
+LiquidCrystal lcd (4,5,6,7,8,9);
 
-int pin_trig = 3, pin_echo=2;
-int buzzer = 10;
+int pin_trig =10, pin_echo =2; //utrassônico
+int botao=3;
+int buzzer = 11;
 int gatilho = A0;
-
+int led_verde=12, led_vermelho=13;
 float distancia;
 int tempo;
-int positionAst = 15;
+
+// posição dos objetos
+int positionAst = 16;
+int positionAstQ =20; 
+//**********************
 int positionNAVE = 0;
-int positionTiro =15;
-int positionTiro1 =15;
+int positionTiro = 15;
+int positionTiro2= 15;
+
 int linha;
 int asteroide;
-int x=0,y=0;
 
-//nave
+//referenciadores para movimento
+int x=0,y=0,z=0;
+int w=1;
 
-  
+//nave 
 byte nave[8]{
   
   B10000,
@@ -32,7 +39,7 @@ byte nave[8]{
 
 };
 
-//byte em branco
+//byte em branco substitui lcd.clear
 byte branco[8]{
   
   B00000,
@@ -48,20 +55,40 @@ byte branco[8]{
 
 
 //asteroides
-
 byte ast1[8]{
   B00100,
   B01010,
-  B10001,
-  B10001,
-  B10001,
-  B10001,
+  B10101,
+  B11001,
+  B10011,
+  B10101,
+  B01010,
+  B00100,
+};
+byte ast2[8]{
+  B00100,
+  B01010,
+  B10101,
+  B10011,
+  B11001,
+  B10101,
   B01010,
   B00100,
 };
 
 //tiro
-byte tiro[8]{
+byte tiro[8]{ // primeiro tiro
+  B00000,
+  B00000,
+  B01110,
+  B11111,
+  B01110,
+  B00000,
+  B00000,
+  B00000,
+};
+
+byte tiro3[8]{//segundo tiro
   B00000,
   B00000,
   B01110,
@@ -77,22 +104,26 @@ void setup()
   pinMode(pin_trig, OUTPUT);
   pinMode(pin_echo,INPUT);
   pinMode(buzzer, OUTPUT);
+  pinMode(led_verde, OUTPUT);
+  pinMode(led_vermelho,OUTPUT);
+  pinMode(botao, INPUT);
+  
+  attachInterrupt( digitalPinToInterrupt(botao),trata_interrupcao,RISING); 
   
   
   Serial.begin(9600);
   
-  lcd.createChar(5,tiro);
+  lcd.createChar(5,tiro);// tiro para linha 1
+  lcd.createChar(6,tiro3);// tiro para linha 0
   lcd.createChar(0, nave);
   lcd.begin(16, 2); //setup da nave no LCD
-
 }
 
-int nave1(){
+int nave1(){ // movimento da nave através da função nivel()
 
-
-  distancia= nivel();
+  distancia = nivel();
   
-    if(distancia > 120){
+    if(distancia > 100){
     
     positionNAVE = 0;
    
@@ -104,7 +135,7 @@ int nave1(){
     
    }
     
-if(distancia < 120){
+if(distancia < 100){
        
   positionNAVE = 1;
   
@@ -112,18 +143,13 @@ if(distancia < 120){
   lcd.setCursor(0,positionNAVE-1);
   lcd.write(byte(4));
   lcd.setCursor(0,positionNAVE);
-  lcd.write(byte(0));
+  lcd.write(byte(0)); 
   
-  
-}
- 
-  
+} 
   return positionNAVE;
 }
 
-
-
-float nivel() {
+float nivel() { //Controle do sensor ultrassonico para movimento
   
   int tempo;
   float distancia;
@@ -138,147 +164,285 @@ float nivel() {
   tempo = pulseIn(pin_echo,HIGH);
   
   distancia= tempo*  0.017;
-  
-
-  
+   
   return distancia;
 }
   
 void loop() {
   
-    random (asteroide, linha);
- 	positionAst = 16;
+    shuffle();//asteroide, linha
+    Serial.println(analogRead(A0));
+    positionAst=15;//asteroide posição baixo
+    positionAstQ=19;//asteroide posição cima
+    positionAst=25;
+    positionAstQ=16;
+    Serial.println(analogRead(A0));
+  
 }
 
-
-
-void random (int asteroide, int linha){
+void shuffle(){//novo void loop
   
- int n = random(2); //n para asteroide
+ int n=1;
+ int k=0;//varaivel para asteroide linha 1
+ // varaiavel para asteroide linha 0
+ int grau1 = grau(); 
 
- Serial.println(n);
- delay(10);
+
+ digitalWrite(led_verde,HIGH);
+  if( w==1){
+  	
+    lcd.setCursor(3,0);
+    lcd.print("APERTE START");
+    lcd.setCursor(3,1);
+    lcd.print("PARA COMECAR");
+    
+    lcd.scrollDisplayLeft();
+      delay(200);
+  
+  }
+  if( w==-1){
+  lcd.clear();
+  
+  }
  
-
-while(positionAst >= -1){
+  if(w==-1){
+  
+  
+while(positionAst >= -1 ||  positionAstQ >= -2  ){
 int grau1 = grau(); 
- 
- 
-  
+
 nave1();
   
 if(grau1==180 && positionNAVE == 0){//LED VERDE HIGH
-    x=1;      						//FAZER GATILHO VOLTAR
+  digitalWrite(led_verde, LOW);
+  digitalWrite(led_vermelho, HIGH);
+    x=1;      						
   }
   if(grau1==180 && positionNAVE == 1){//LED VERDE HIGH
+    digitalWrite(led_verde, LOW);
+  digitalWrite(led_vermelho, HIGH);
   y=1;
   }
-if(positionTiro<=1){//positionTiro==0
+  //inicia tiro
+if(positionTiro<=1){//positionTiro==1
+  digitalWrite(led_verde,LOW);
+  digitalWrite(led_vermelho,HIGH);
   positionTiro=15;
+
   x=0;
+
+ }
+  if( positionTiro2<=1){//positionTiro==0
+  digitalWrite(led_verde,LOW);
+  digitalWrite(led_vermelho,HIGH);
+  
+  positionTiro2=15;
+ 
   y=0;
-  delay(400);
 
  }
   
-
-
-if( x==1 && positionNAVE == 0 ){
+  if( x==1 && positionNAVE == 0 && positionTiro2==15){ // disparo tiro linha 1
   		tiro1();
   
   positionTiro--;
   }
-if( x==1 && positionNAVE == 1){
+  
+if( x==1 && positionNAVE == 1 && positionTiro2==15){//disparo tiro linha 1
     	tiro1();
   positionTiro--;
-
 }
-  if( y==1 && positionNAVE == 1 ){
-  		tiro2();
-  positionTiro--;
   
+  if( y==1 && positionNAVE == 1 && positionTiro==15){//disparo tiro linha 0
+  	tiro2();
+   
+  positionTiro2--;
   }
-if( y==1 && positionNAVE == 0){
+  
+if( y==1 && positionNAVE == 0 && positionTiro==15){//disparo tiro linha 0
     	tiro2();
-  positionTiro--;
-
+ 
+  positionTiro2--;
 }
+  
+  if(16-positionTiro>positionAstQ && z==k && x==1 ){//PARA ELIMINAR O AST linha 0 com Tiro3
+          tone(buzzer, 320);
+          delay(150);
+          tone(buzzer, 200);
 
+          noTone(buzzer);
+          lcd.createChar(4, branco); //movimentar astr
+          lcd.setCursor(positionAstQ-1,k);
+          lcd.write(byte(4));
+      
+          lcd.createChar(4, branco); //movimentar astr
+          lcd.setCursor(positionAstQ+1,k);
+          lcd.write(byte(4));
 
-   lcd.createChar(4, branco);
-   lcd.setCursor(positionAst+1,n);
+          lcd.createChar(4, branco); //movimentar astr
+          lcd.setCursor(positionAstQ,k);
+          lcd.write(byte(4));
+		
+		  positionTiro=15;
+          positionAstQ=18; //dependendo do humor do arduino ele pula a linha
+          
+          x=0; //dependendo do humor do arduino ele pula a linha
+          y=0;
+      	 
+
+          digitalWrite(led_verde, HIGH);
+          digitalWrite(led_vermelho,LOW);
+          Serial.println("score +1");
+         
+       }
+  if(16-positionTiro2>positionAst && z==n && y==1   ){//PARA ELIMINAR O AST linha 1 com tiro 
+    	    tone(buzzer, 320);
+            delay(150);
+            tone(buzzer, 200);
+         
+            noTone(buzzer);
+            lcd.createChar(4, branco); //movimentar astr
+            lcd.setCursor(positionAst+1,n);
+            lcd.write(byte(4));
+            
+      		lcd.createChar(4, branco); //movimentar astr
+            lcd.setCursor(positionAst-1,n);
+            lcd.write(byte(4));
+
+            lcd.createChar(4, branco); //movimentar astr
+            lcd.setCursor(positionAst,n);
+            lcd.write(byte(4));
+      		
+      
+			positionTiro2=15;
+      		positionAst=15;
+   			
+   			y=0;
+            x=0;	
+      
+            digitalWrite(led_verde, HIGH);
+            digitalWrite(led_vermelho,LOW);
+            Serial.println("score +1");}
+
+  	
+    lcd.createChar(4, branco); //movimentar astr
+    lcd.setCursor(positionAst+1,n);
     lcd.write(byte(4));
     
     lcd.createChar(2, ast1);
     lcd.setCursor(positionAst,n); //(0)
     lcd.write(2);
+  
+  	delay(10);
+  
+   
+  	lcd.createChar(4, branco); //movimentar astr
+    lcd.setCursor(positionAstQ+1,k);
+    lcd.write(byte(4));
     
-    lcd.createChar(2, ast1);
-    lcd.setCursor(positionAst, n); //(0)
-    lcd.write(2);
-    
-    delay(10);
-    
-    
+    lcd.createChar(7, ast2);
+    lcd.setCursor(positionAstQ,k); //(0)
+    lcd.write(7);
+  	delay(50);
+  
     positionAst--;
-  	//positionTiro--;
+    positionAstQ--;
+   
+
+if(nave1() == 1 && positionAst == 0 ){ // game over
   
+    lcd.setCursor(6,0);
+    lcd.print("GAME");
+    lcd.setCursor(6,1);
+    lcd.print("OVER");
+   
+    tone(buzzer, 320);
+    delay(150);
+    tone(buzzer, 200);
+    delay(150);
+    tone(buzzer, 100);
+    delay(250);
+    noTone(buzzer);
+    delay(2000);
+    
+     lcd.clear();
+     break;
+	
+    y=0;
+    x=0;
+  	
+ }
  
-   	
-  if( nave1() == n && positionAst == 0 ){
-  
+if(nave1() == 0 && positionAstQ == 0 ){//game over
   	
     lcd.setCursor(6,0);
     lcd.print("GAME");
     lcd.setCursor(6,1);
     lcd.print("OVER");
    
-    
-    tone( buzzer, 261);
-    delay(100);
+    tone(buzzer, 320);
+    delay(400);
     noTone(buzzer);
+    tone(buzzer, 200);
+    delay(400);
+  	noTone(buzzer);
+    tone(buzzer, 100);
+    delay(550);
+    noTone(buzzer);
+    //delay(5000);
     
-     lcd.clear();
-      break;
-    
-      }
-
+    lcd.clear();
+    break;
+ 
+    y=0;
+    x=0;
+	
+	}
    } 
+  
 }
-
-int grau (){ 
+}
+  
+int grau (){ //função para o gatilho
   	int valor = map(analogRead(A0), 33, 6, 0, 180);
-  	Serial.println(valor);
+  	
 	return valor;
 }
 
-
-
-int tiro1(){
-
+int tiro1(){ //função para to da linha 1
+	z=0;
    
-    lcd.setCursor(16-positionTiro,0);
+    lcd.setCursor(16-positionTiro,z);
     lcd.write(byte(5));
-    delay(100);
+    delay(50);
   
     lcd.createChar(4, branco);
-   	lcd.setCursor(16-positionTiro,0);
+   	lcd.setCursor(16-positionTiro,z);
     lcd.write(byte(4));
   
-
  return positionTiro;
 }
-int tiro2(){
 
-   
-    lcd.setCursor(16-positionTiro,1);
-    lcd.write(byte(5));
-    delay(100);
+int tiro2(){//função para to da linha 0
+
+   z=1;
+    lcd.setCursor(16-positionTiro2,z);
+    lcd.write(byte(6));
+    delay(50);
   
     lcd.createChar(4, branco);
-   	lcd.setCursor(16-positionTiro,1);
+   	lcd.setCursor(16-positionTiro2,z);
     lcd.write(byte(4));
   
+ return positionTiro2;
+}
 
- return positionTiro;
+void trata_interrupcao(){
+  
+if( w == 1){
+    w= w*-1;}
+else{
+  	w=w*-1;
+  }
+  
 }
